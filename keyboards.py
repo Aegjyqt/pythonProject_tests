@@ -11,5 +11,5 @@ kb_mailout = InlineKeyboardMarkup(
         [
             InlineKeyboardButton(text='regular users', callback_data='regular_users_pressed')
         ]
-        ]
+    ]
 )

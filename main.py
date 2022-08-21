@@ -1,10 +1,12 @@
+import contextlib
+import os
+
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.utils.exceptions import BotBlocked, UserDeactivated, ChatNotFound
 from dotenv import load_dotenv
-import os
 
 import bot_db
 import keyboards
@@ -32,12 +34,14 @@ def admin(handler: callable):
             return await handler(message)
         else:
             await message.answer('you\'re no admin!')
+
     return wrapper
 
 
 @dp.message_handler(commands='start')
 async def welcome_and_register(message: types.Message) -> None:
-    bot_db.db.add_to_database(user_id=message.from_user.id)
+    db = bot_db.BotDb()
+    db.add_to_database(user_id=message.from_user.id)
     await message.answer('welcome')
 
 
@@ -57,16 +61,16 @@ async def init_mailout(message: types.Message):
 @dp.callback_query_handler(text='all_users_pressed', state=MailoutPipeline.mailout_init)
 async def ask_for_msg_to_all(call: types.CallbackQuery, state: FSMContext) -> None:
     await call.message.answer(text='Your message:')
-    await MailoutPipeline.mailout_all_users.set()
+    await state.set_state(MailoutPipeline.mailout_all_users)
 
 
 @dp.message_handler(state=MailoutPipeline.mailout_all_users)
 async def send_to_all_users(message: types.Message, state: FSMContext) -> None:
-    for user_id in bot_db.db.get_user_ids():
-        try:
-            await message.forward(chat_id=user_id)
-        except (BotBlocked, UserDeactivated, ChatNotFound):
-            pass
+    db = bot_db.BotDb()
+    for user_id in db.get_user_ids():
+        with contextlib.suppress(BotBlocked, UserDeactivated, ChatNotFound):
+            await message.send_copy(chat_id=user_id)
+
     await state.finish()
 
 
@@ -78,30 +82,33 @@ async def ask_for_msg_to_admins(call: types.CallbackQuery, state: FSMContext) ->
 
 @dp.message_handler(state=MailoutPipeline.mailout_admins)
 async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
-    for user_id in bot_db.db.get_admin_ids():
-        try:
-            await message.forward(chat_id=user_id)
-        except (BotBlocked, UserDeactivated, ChatNotFound):
-            pass
+    db = bot_db.BotDb()
+    for user_id in db.get_admin_ids():
+        with contextlib.suppress(BotBlocked, UserDeactivated, ChatNotFound):
+            await message.send_copy(chat_id=user_id)
+
     await state.finish()
 
 
 @dp.callback_query_handler(text='regular_users_pressed', state=MailoutPipeline.mailout_init)
 async def ask_for_msg_to_admins(call: types.CallbackQuery, state: FSMContext) -> None:
     await call.message.answer(text='Your message:')
-    await MailoutPipeline.mailout_regular_users.set()
+    await state.set_state(MailoutPipeline.mailout_regular_users)
 
 
 @dp.message_handler(state=MailoutPipeline.mailout_regular_users)
 async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
-    regular_users_ids_list = bot_db.db.get_user_ids() - bot_db.db.get_admin_ids()
+    db = bot_db.BotDb()
+    regular_users_ids_list = db.get_user_ids() - db.get_admin_ids()
     for user_id in regular_users_ids_list:
-        try:
+        with contextlib.suppress(BotBlocked, UserDeactivated, ChatNotFound):
             await message.forward(chat_id=user_id)
-        except (BotBlocked, UserDeactivated, ChatNotFound):
-            pass
+
     await state.finish()
 
 
 if __name__ == '__main__':
     executor.start_polling(dp)
+
+
+# TODO: при попытки пересылки сообщения переделать try с пустым except на suppress.
