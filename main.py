@@ -70,14 +70,13 @@ async def send_to_all_users(message: types.Message, state: FSMContext) -> None:
     for user_id in db.get_user_ids():
         with contextlib.suppress(BotBlocked, UserDeactivated, ChatNotFound):
             await message.send_copy(chat_id=user_id)
-
     await state.finish()
 
 
 @dp.callback_query_handler(text='admins_pressed', state=MailoutPipeline.mailout_init)
 async def ask_for_msg_to_admins(call: types.CallbackQuery, state: FSMContext) -> None:
     await call.message.answer(text='Your message:')
-    await MailoutPipeline.mailout_admins.set()
+    await state.set_state(MailoutPipeline.mailout_admins)
 
 
 @dp.message_handler(state=MailoutPipeline.mailout_admins)
@@ -86,7 +85,6 @@ async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
     for user_id in db.get_admin_ids():
         with contextlib.suppress(BotBlocked, UserDeactivated, ChatNotFound):
             await message.send_copy(chat_id=user_id)
-
     await state.finish()
 
 
@@ -103,7 +101,6 @@ async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
     for user_id in regular_users_ids_list:
         with contextlib.suppress(BotBlocked, UserDeactivated, ChatNotFound):
             await message.forward(chat_id=user_id)
-
     await state.finish()
 
 
