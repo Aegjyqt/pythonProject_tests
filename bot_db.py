@@ -1,3 +1,4 @@
+import contextlib
 import sqlite3
 from dataclasses import dataclass
 
@@ -14,30 +15,42 @@ class BotDb:
         self._db = sqlite3.connect('bot_users')
         self.create_table_if_not_exists()
 
-    def create_table_if_not_exists(self):
+    @contextlib.contextmanager
+    def db_access(self):
         cursor = self._db.cursor()
-        cursor.execute('''
-                       CREATE TABLE IF NOT EXISTS tb_users(id INTEGER PRIMARY KEY, is_admin BOOLEAN)
-                       ''')
-        self._db.commit()
+        yield cursor
         cursor.close()
+
+    def create_table_if_not_exists(self):
+        with self.db_access() as cursor:
+            cursor.execute('''
+                           CREATE TABLE IF NOT EXISTS tb_users(id INTEGER PRIMARY KEY, is_admin BOOLEAN)
+                           ''')
+            self._db.commit()
 
     def add_to_database(self, user_id: int, is_admin: bool = False) -> None:
-        cursor = self._db.cursor()
-        cursor.execute('''
-                       INSERT OR IGNORE INTO tb_users(
-                       id, is_admin)
-                       VALUES(?,?)
-                       ''', (user_id, is_admin))
-        self._db.commit()
-        cursor.close()
+        with self.db_access() as cursor:
+            cursor.execute('''
+                           INSERT OR IGNORE INTO tb_users(
+                           id, is_admin)
+                           VALUES(?,?)
+                           ''', (user_id, is_admin))
+            self._db.commit()
 
-    def get_users(self) -> list:
-        cursor = self._db.cursor()
-        cursor.execute('''SELECT id, is_admin FROM tb_users''')
-        all_rows = cursor.fetchall()
-        users_list = []
-        for row in all_rows:
-            users_list.append(User(user_id=row[0], is_admin=row[1]))
-        return users_list
+    def get_regular_users(self) -> list:
+        with self.db_access() as cursor:
+            cursor.execute('''SELECT id, is_admin FROM tb_users WHERE is_admin = 0''')
+            all_rows = cursor.fetchall()
+            regular_users_list = []
+            for row in all_rows:
+                regular_users_list.append(User(user_id=row[0], is_admin=row[1]))
+        return regular_users_list
 
+    def get_admins(self) -> list:
+        with self.db_access() as cursor:
+            cursor.execute('''SELECT id, is_admin FROM tb_users WHERE is_admin = 1''')
+            all_rows = cursor.fetchall()
+            admins_list = []
+            for row in all_rows:
+                admins_list.append(User(user_id=row[0], is_admin=row[1]))
+        return admins_list

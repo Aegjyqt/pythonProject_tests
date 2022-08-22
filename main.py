@@ -62,7 +62,8 @@ async def ask_for_msg_to_all(call: types.CallbackQuery) -> None:
 
 @dp.message_handler(state=MailoutPipeline.mailout_all_users)
 async def send_to_all_users(message: types.Message, state: FSMContext) -> None:
-    for user in bot_db.BotDb().get_users():
+    all_users_list = bot_db.BotDb().get_regular_users() + bot_db.BotDb().get_admins()
+    for user in all_users_list:
         try:
             await message.send_copy(chat_id=user.user_id)
         except (BotBlocked, UserDeactivated, ChatNotFound):
@@ -78,7 +79,7 @@ async def ask_for_msg_to_admins(call: types.CallbackQuery) -> None:
 
 @dp.message_handler(state=MailoutPipeline.mailout_admins)
 async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
-    for user in bot_db.BotDb().get_users():
+    for user in bot_db.BotDb().get_admins():
         try:
             if user.is_admin:
                 await message.send_copy(chat_id=user.user_id)
@@ -95,10 +96,9 @@ async def ask_for_msg_to_admins(call: types.CallbackQuery) -> None:
 
 @dp.message_handler(state=MailoutPipeline.mailout_regular_users)
 async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
-    for user in bot_db.BotDb().get_users():
+    for user in bot_db.BotDb().get_regular_users():
         try:
-            if not user.is_admin:
-                await message.send_copy(chat_id=user.user_id)
+            await message.send_copy(chat_id=user.user_id)
         except (BotBlocked, UserDeactivated, ChatNotFound):
             pass
     await state.finish()
