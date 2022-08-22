@@ -41,27 +41,5 @@ class BotDb:
             users_list.append(User(user_id=row[0], is_admin=row[1]))
         return users_list
 
-    def get_user_ids(self) -> set:
-        cursor = self._db.cursor()
-        cursor.execute('''SELECT id, is_admin FROM tb_users''')
-        all_rows = cursor.fetchall()
-        all_user_ids = set()
-        for row in all_rows:
-            all_user_ids.add(row[0])
-        cursor.close()
-        return all_user_ids
-
-    def get_admin_ids(self) -> set:
-        cursor = self._db.cursor()
-        cursor.execute('''SELECT id, is_admin FROM tb_users WHERE is_admin=1''')
-        all_rows = cursor.fetchall()
-        admin_ids = set()
-        for row in all_rows:
-            admin_ids.add(row[0])
-        cursor.close()
-        return admin_ids
-
 
 db = BotDb()
-
-print(db.get_users())
