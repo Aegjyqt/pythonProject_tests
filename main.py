@@ -37,7 +37,7 @@ def admin(handler: callable):
 
 @dp.message_handler(commands='start')
 async def welcome_and_register(message: types.Message) -> None:
-    bot_db.db.add_to_database(user_id=message.from_user.id)
+    bot_db.BotDb().add_to_database(user_id=message.from_user.id)
     await message.answer('welcome')
 
 
@@ -62,7 +62,7 @@ async def ask_for_msg_to_all(call: types.CallbackQuery) -> None:
 
 @dp.message_handler(state=MailoutPipeline.mailout_all_users)
 async def send_to_all_users(message: types.Message, state: FSMContext) -> None:
-    for user in bot_db.db.get_users():
+    for user in bot_db.BotDb().get_users():
         try:
             await message.send_copy(chat_id=user.user_id)
         except (BotBlocked, UserDeactivated, ChatNotFound):
@@ -78,7 +78,7 @@ async def ask_for_msg_to_admins(call: types.CallbackQuery) -> None:
 
 @dp.message_handler(state=MailoutPipeline.mailout_admins)
 async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
-    for user in bot_db.db.get_users():
+    for user in bot_db.BotDb().get_users():
         try:
             if user.is_admin:
                 await message.send_copy(chat_id=user.user_id)
@@ -95,7 +95,7 @@ async def ask_for_msg_to_admins(call: types.CallbackQuery) -> None:
 
 @dp.message_handler(state=MailoutPipeline.mailout_regular_users)
 async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
-    for user in bot_db.db.get_users():
+    for user in bot_db.BotDb().get_users():
         try:
             if not user.is_admin:
                 await message.send_copy(chat_id=user.user_id)

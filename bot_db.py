@@ -41,5 +41,3 @@ class BotDb:
             users_list.append(User(user_id=row[0], is_admin=row[1]))
         return users_list
 
-
-db = BotDb()
