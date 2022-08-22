@@ -1,4 +1,11 @@
 import sqlite3
+from dataclasses import dataclass
+
+
+@dataclass
+class User:
+    user_id: int
+    is_admin: bool
 
 
 class BotDb:
@@ -25,6 +32,15 @@ class BotDb:
         self._db.commit()
         cursor.close()
 
+    def get_users(self) -> list:
+        cursor = self._db.cursor()
+        cursor.execute('''SELECT id, is_admin FROM tb_users''')
+        all_rows = cursor.fetchall()
+        users_list = []
+        for row in all_rows:
+            users_list.append(User(user_id=row[0], is_admin=row[1]))
+        return users_list
+
     def get_user_ids(self) -> set:
         cursor = self._db.cursor()
         cursor.execute('''SELECT id, is_admin FROM tb_users''')
@@ -47,3 +63,5 @@ class BotDb:
 
 
 db = BotDb()
+
+print(db.get_users())
