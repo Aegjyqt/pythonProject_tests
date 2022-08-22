@@ -37,12 +37,11 @@ class BotDb:
 
     def get_admin_ids(self) -> set:
         cursor = self._db.cursor()
-        cursor.execute('''SELECT id, is_admin FROM tb_users''')
+        cursor.execute('''SELECT id, is_admin FROM tb_users WHERE is_admin=1''')
         all_rows = cursor.fetchall()
         admin_ids = set()
         for row in all_rows:
-            if row[1]:
-                admin_ids.add(row[0])
+            admin_ids.add(row[0])
         cursor.close()
         return admin_ids
 
