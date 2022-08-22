@@ -55,7 +55,7 @@ async def init_mailout(message: types.Message):
 
 
 @dp.callback_query_handler(text='all_users_pressed', state=MailoutPipeline.mailout_init)
-async def ask_for_msg_to_all(call: types.CallbackQuery, state: FSMContext) -> None:
+async def ask_for_msg_to_all(call: types.CallbackQuery) -> None:
     await call.message.answer(text='Your message:')
     await MailoutPipeline.mailout_all_users.set()
 
@@ -64,14 +64,14 @@ async def ask_for_msg_to_all(call: types.CallbackQuery, state: FSMContext) -> No
 async def send_to_all_users(message: types.Message, state: FSMContext) -> None:
     for user_id in bot_db.db.get_user_ids():
         try:
-            await message.forward(chat_id=user_id)
+            await message.send_copy(chat_id=user_id)
         except (BotBlocked, UserDeactivated, ChatNotFound):
             pass
     await state.finish()
 
 
 @dp.callback_query_handler(text='admins_pressed', state=MailoutPipeline.mailout_init)
-async def ask_for_msg_to_admins(call: types.CallbackQuery, state: FSMContext) -> None:
+async def ask_for_msg_to_admins(call: types.CallbackQuery) -> None:
     await call.message.answer(text='Your message:')
     await MailoutPipeline.mailout_admins.set()
 
@@ -80,14 +80,14 @@ async def ask_for_msg_to_admins(call: types.CallbackQuery, state: FSMContext) ->
 async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
     for user_id in bot_db.db.get_admin_ids():
         try:
-            await message.forward(chat_id=user_id)
+            await message.send_copy(chat_id=user_id)
         except (BotBlocked, UserDeactivated, ChatNotFound):
             pass
     await state.finish()
 
 
 @dp.callback_query_handler(text='regular_users_pressed', state=MailoutPipeline.mailout_init)
-async def ask_for_msg_to_admins(call: types.CallbackQuery, state: FSMContext) -> None:
+async def ask_for_msg_to_admins(call: types.CallbackQuery) -> None:
     await call.message.answer(text='Your message:')
     await MailoutPipeline.mailout_regular_users.set()
 
@@ -97,7 +97,7 @@ async def send_to_all_admins(message: types.Message, state: FSMContext) -> None:
     regular_users_ids_list = bot_db.db.get_user_ids() - bot_db.db.get_admin_ids()
     for user_id in regular_users_ids_list:
         try:
-            await message.forward(chat_id=user_id)
+            await message.send_copy(chat_id=user_id)
         except (BotBlocked, UserDeactivated, ChatNotFound):
             pass
     await state.finish()

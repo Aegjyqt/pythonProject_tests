@@ -18,7 +18,6 @@ class BotDb:
         except sqlite3.OperationalError:
             pass
 
-
     def add_to_database(self, user_id: int, is_admin: bool = False) -> None:
         cursor = self._db.cursor()
         try:
@@ -30,7 +29,6 @@ class BotDb:
             self._db.commit()
         except sqlite3.IntegrityError:
             pass
-
 
     def get_user_ids(self) -> set:
         cursor = self._db.cursor()
@@ -51,7 +49,5 @@ class BotDb:
                 admin_ids.add(row[0])
         return admin_ids
 
+
 db = BotDb()
-
-
-
