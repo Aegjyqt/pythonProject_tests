@@ -1,13 +1,19 @@
 import sqlite3
 
 
-class BotDb:
+class BotDb: 
     """Думаю, разумно создать разные фунцкии на получение админов/пользователей здесь, а не реализовывать это
     в main"""
 
     def __init__(self):
         self._db = sqlite3.connect('bot_users.db')
+
+    def __enter__(self):
         self._create_table_if_not_exists()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._db.close()
 
     def _create_table_if_not_exists(self):
         # Создан коннект к базе:
