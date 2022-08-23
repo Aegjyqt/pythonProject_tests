@@ -6,13 +6,16 @@ class BotDb:
     в main"""
 
     def __init__(self):
+        print('Сработал init')
         self._db = sqlite3.connect('bot_users.db')
 
     def __enter__(self):
+        print('Сработал __enter__()')
         self._create_table_if_not_exists()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        print('Сработал __exit__()')
         self._db.close()
 
     def _create_table_if_not_exists(self):
@@ -21,7 +24,7 @@ class BotDb:
         try:
             # Почитать про SQL проверку IF NOT EXISTS
             cursor.execute('''
-                        CREATE TABLE tbl_users(id INTEGER PRIMARY KEY, is_admin BOOLEAN)
+                        CREATE TABLE tb_users(id INTEGER PRIMARY KEY, is_admin BOOLEAN)
                         ''')
             self._db.commit()
             # Закрыт коннект к базе:
@@ -32,6 +35,7 @@ class BotDb:
 
     def add_to_database(self, user_id: int, is_admin: bool = False) -> None:
         cursor = self._db.cursor()
+        print('запрос в базу')
         try:
             cursor.execute('''
             INSERT INTO tb_users(
@@ -44,6 +48,7 @@ class BotDb:
             print(e)
 
     def get_user_ids(self) -> set:
+        print('Сработал get_user_ids()')
         cursor = self._db.cursor()
         cursor.execute('''SELECT id, is_admin FROM tb_users''')
         all_rows = cursor.fetchall()
@@ -54,7 +59,8 @@ class BotDb:
 
     def get_admin_ids(self) -> set:
         cursor = self._db.cursor()
-        cursor.execute('''SELECT id, is_admin FROM tbl_users WHERE is_admin = True''')
+        print('Сработал get_admin_ids()')
+        cursor.execute('''SELECT id, is_admin FROM tb_users WHERE is_admin = True''')
         all_rows = cursor.fetchall()
         admin_ids = set()
         for row in all_rows:
