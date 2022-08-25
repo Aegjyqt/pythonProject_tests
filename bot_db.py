@@ -24,14 +24,14 @@ class BotDb:
     def create_table_if_not_exists(self):
         with self.db_access() as cursor:
             cursor.execute('''
-                           CREATE TABLE IF NOT EXISTS tb_users(id INTEGER PRIMARY KEY, is_admin BOOLEAN)
+                           CREATE TABLE IF NOT EXISTS tbl_users(id INTEGER PRIMARY KEY, is_admin BOOLEAN)
                            ''')
             self._db.commit()
 
     def add_to_database(self, user_id: int, is_admin: bool = False) -> None:
         with self.db_access() as cursor:
             cursor.execute('''
-                           INSERT OR IGNORE INTO tb_users(
+                           INSERT OR IGNORE INTO tbl_users(
                            id, is_admin)
                            VALUES(?,?)
                            ''', (user_id, is_admin))
@@ -39,7 +39,7 @@ class BotDb:
 
     def get_regular_users(self) -> list:
         with self.db_access() as cursor:
-            cursor.execute('''SELECT id, is_admin FROM tb_users WHERE is_admin = 0''')
+            cursor.execute('''SELECT id, is_admin FROM tbl_users WHERE is_admin = 0''')
             all_rows = cursor.fetchall()
             regular_users_list = []
             for row in all_rows:
@@ -48,7 +48,7 @@ class BotDb:
 
     def get_admins(self) -> list:
         with self.db_access() as cursor:
-            cursor.execute('''SELECT id, is_admin FROM tb_users WHERE is_admin = 1''')
+            cursor.execute('''SELECT id, is_admin FROM tbl_users WHERE is_admin = 1''')
             all_rows = cursor.fetchall()
             admins_list = []
             for row in all_rows:

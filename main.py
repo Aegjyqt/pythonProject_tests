@@ -10,6 +10,7 @@ import os
 
 import bot_db
 import keyboards
+import messages
 
 load_dotenv()
 
@@ -33,19 +34,24 @@ def admin(handler: callable):
         if message.from_user.id == 1405901798:
             return await handler(message)
         else:
-            await message.answer('you\'re no admin!')
+            await message.answer(messages.not_admin)
     return wrapper
 
 
 @dp.message_handler(commands='start')
 async def welcome_and_register(message: types.Message) -> None:
     bot_db.BotDb().add_to_database(user_id=message.from_user.id)
-    await message.answer('welcome')
+    await message.answer(messages.welcom)
+
+
+@dp.message_handler(commands='about')
+async def about(message: types.Message) -> None:
+    await message.answer(messages.about)
 
 
 @dp.message_handler(commands='cancel', state='*')
 async def exit_stage(message: types.Message, state: FSMContext) -> None:
-    await message.reply(text='you\'ve cancelled')
+    await message.reply(text=messages.cancel)
     await state.finish()
 
 
